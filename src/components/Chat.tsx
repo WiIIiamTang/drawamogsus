@@ -60,7 +60,7 @@ const Chat = (props: Props) => {
   return (
     <div className="rounded border border-slate-400 bg-secondary flex flex-col">
       <h3 className="px-4 h-1/12 text-lg font-bold">Chat</h3>
-      <div className="h-56 max-h-full w-full border-black mt-auto overflow-y-auto flex flex-col min-w-0 break-all min-h-0">
+      <div className="h-56 max-h-full w-full border-black mt-auto overflow-y-auto overflow-x-hidden flex flex-col min-w-0 break-all min-h-0">
         {messages.map((message, i) => (
           <div
             className={`chat ${
@@ -69,7 +69,7 @@ const Chat = (props: Props) => {
             key={i}
           >
             <div className="chat-header">{message.name}</div>
-            <div className="chat-bubble chat-bubble-accent text-sm font-light mb-0 pb-0">
+            <div className="chat-bubble chat-bubble-accent text-sm font-light mb-0 pb-0 break-all w-56">
               {message.message}
             </div>
           </div>
