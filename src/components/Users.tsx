@@ -1,10 +1,16 @@
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
+
+type UserVotes = {
+  [key: string]: number;
+};
 
 type Props = {
   socket: Socket;
   room: string;
   currentNickname: string;
+  voting: boolean;
+  setVoteFor: Dispatch<SetStateAction<string>>;
 };
 
 const Users = (props: Props) => {
@@ -39,14 +45,33 @@ const Users = (props: Props) => {
     };
   }, [props.socket, users]);
 
+  const handleVoteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    props.setVoteFor(e.target.value);
+  };
+
   return (
     <div className="bg-secondary px-4 rounded border border-slate-400 h-full overflow-auto">
-      <h3 className="text-lg font-bold">Users</h3>
+      <h3 className="text-lg font-bold">
+        Users {props.voting && " - Vote here!"}
+      </h3>
 
       <ul>
-        {users.map((user, i) => (
-          <li key={i}>{user}</li>
-        ))}
+        {!props.voting
+          ? users.map((user, i) => <li key={i}>{user}</li>)
+          : users.map((user, i) => (
+              <li key={i}>
+                <label className="label cursor-pointer">
+                  <span className="label-text">{user}</span>
+                  <input
+                    type="radio"
+                    className="radio radio-error"
+                    name="vote-radio"
+                    onChange={handleVoteChange}
+                    value={props.socket.id}
+                  />
+                </label>
+              </li>
+            ))}
       </ul>
     </div>
   );

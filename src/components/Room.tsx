@@ -35,13 +35,30 @@ type Props = {
 
 const Room = (props: Props) => {
   const socket = props.socket;
-  const { canvasRef, onMouseDown, clear } = useDraw(createLine);
+  const [isDrawing, setIsDrawing] = useState<boolean>(false);
+  const [userScore, setUserScore] = useState<number>(0);
+  const [countdownCount, setCountdownCount] = useState<number>(0);
+  const [countdownDraw, setCountdownDraw] = useState<number>(0);
+  const [countdownVote, setCountdownVote] = useState<number>(0);
+  const [currentDrawer, setCurrentDrawer] = useState<string>("");
+  const [currentRound, setCurrentRound] = useState<number>(0);
+  const [voting, setVoting] = useState<boolean>(false);
+  const [votefor, setVoteFor] = useState<string>("");
+  const [word, setWord] = useState<string>("");
+  const { canvasRef, onMouseDown, clear } = useDraw(createLine, isDrawing);
   const [color, setColor] = useState<string>("#000");
+  const [gameStarted, setGameStarted] = useState<boolean>(false);
+  const [abouttoStart, setAbouttoStart] = useState<boolean>(false);
+  const [role, setRole] = useState<string>("");
   const [canvasWidth, setCanvasWidth] = useState<number>(window.outerWidth / 2);
   const [canvasHeight, setCanvasHeight] = useState<number>(
     window.outerHeight / 2
   );
   const handleColorChangeComplete = (color: ColorResult) => setColor(color.hex);
+  const timeBeforeStart = 5;
+  const timeDraw = 8;
+  const timeVote = 10;
+  const rounds = 2;
 
   useSocketDraw(canvasRef, socket, clear);
 
@@ -76,22 +93,190 @@ const Room = (props: Props) => {
     handleResizeCanvas(canvasRef, canvasHeight + 100, canvasWidth); // TODO: +100 is a stupid temporary fix
     console.log("canvas resized", canvasWidth, canvasHeight);
 
-    window.addEventListener("resize", () => {
-      setCanvasWidth(window.outerWidth / 2);
-      setCanvasHeight(window.outerHeight / 2);
+    // window.addEventListener("resize", () => {
+    //   setCanvasWidth(window.outerWidth / 2);
+    //   setCanvasHeight(window.outerHeight / 2);
+    // });
+
+    // return () => {
+    //   window.removeEventListener("resize", () => {
+    //     setCanvasWidth(window.outerWidth / 2);
+    //     setCanvasHeight(window.outerHeight / 2);
+    //   });
+    // };
+  }, [canvasRef, canvasHeight, canvasWidth]);
+
+  useEffect(() => {
+    // this hook handles socket game logic
+    socket.on(
+      "assign_role",
+      (role: string, firstdraw: boolean, word: string, drawer: string) => {
+        setCountdownCount(timeBeforeStart);
+        setAbouttoStart(true);
+
+        setTimeout(() => {
+          setAbouttoStart(false);
+          setGameStarted(true);
+          setRole(role);
+          setIsDrawing(firstdraw);
+          if (word) setWord(word);
+          if (drawer) {
+            setCurrentDrawer(drawer);
+            setCountdownDraw(timeDraw);
+          }
+          console.log("role assigned", role, firstdraw, word, drawer);
+        }, timeBeforeStart * 1000);
+      }
+    );
+
+    socket.on("game_end", () => {
+      console.log("rounds ended");
+      setCurrentRound(2);
+      setCountdownVote(timeVote);
+      setVoting(true);
+
+      setTimeout(() => {
+        setVoting(false);
+        setGameStarted(false);
+        setAbouttoStart(false);
+        setCountdownCount(0);
+        setCountdownDraw(0);
+        setWord("");
+        setRole("");
+        setCurrentDrawer("");
+        //setVoteFor("");
+        setIsDrawing(false);
+        setCurrentRound(3);
+      }, 10000);
+    });
+
+    socket.on("new_drawer", (drawer: string, round: number) => {
+      console.log("new drawer", drawer, round);
+      if (drawer === props.nickname) {
+        setIsDrawing(true);
+        setCountdownDraw(timeDraw);
+      } else {
+        setIsDrawing(false);
+      }
+      setCurrentDrawer(drawer);
+
+      if (round !== currentRound) {
+        setCurrentRound(round);
+      }
     });
 
     return () => {
-      window.removeEventListener("resize", () => {
-        setCanvasWidth(window.outerWidth / 2);
-        setCanvasHeight(window.outerHeight / 2);
-      });
+      socket.off("assign_role");
+      socket.off("game_end");
+      socket.off("new_drawer");
     };
-  }, [canvasRef, canvasHeight, canvasWidth]);
+  }, [socket, props.nickname, currentRound]);
+
+  useEffect(() => {
+    // coutdown timer
+    if (abouttoStart) {
+      const interval = setInterval(() => {
+        setCountdownCount((countdownCount) => countdownCount - 1);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [abouttoStart, countdownCount]);
+
+  useEffect(() => {
+    // vote countdown timer
+    if (voting) {
+      const interval = setInterval(() => {
+        setCountdownVote((countdownVote) => countdownVote - 1);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [voting, countdownVote]);
+
+  useEffect(() => {
+    // countdown draw timer
+    if (isDrawing) {
+      const interval = setInterval(() => {
+        setCountdownDraw((countdownDraw) => countdownDraw - 1);
+        if (countdownDraw === 0) {
+          setIsDrawing(false);
+          console.log("player is done drawing");
+          socket.emit(
+            "done_drawing",
+            props.room,
+            props.nickname,
+            word,
+            currentRound,
+            (shouldDrawNext: boolean, round: number) => {
+              console.log("done drawing callback");
+              if (round !== currentRound) {
+                setCurrentRound(round);
+              }
+
+              if (shouldDrawNext) {
+                console.log("should draw next");
+                setCountdownDraw(timeDraw);
+                setIsDrawing(true);
+              } else {
+                console.log("should not draw next");
+                setCountdownDraw(0);
+                setIsDrawing(false);
+              }
+            }
+          );
+          return () => clearInterval(interval);
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [
+    isDrawing,
+    countdownDraw,
+    props.nickname,
+    props.room,
+    socket,
+    word,
+    currentRound,
+  ]);
+
+  const handleClickGameStart = () => {
+    socket.emit("clear", props.room);
+    socket.emit("game_start", props.room, props.nickname);
+  };
 
   return (
     <div>
       <div className="h-full w-full flex flex-col bg-transparent justify-center items-center gap-2">
+        <div>
+          {gameStarted ? (
+            <div className="flex flex-col justify-center items-center gap-4">
+              <span>
+                Game has started! Your role is: {role}.{" "}
+                {word && <span> The word is: {word}</span>}{" "}
+              </span>
+              <span
+                className={`font-bold text-lg ${
+                  isDrawing && "text-indigo-600 animate-bounce"
+                }`}
+              >
+                {isDrawing && !voting
+                  ? `You are drawing. Time left: ${countdownDraw}`
+                  : !voting && `${currentDrawer} is drawing.`}
+
+                {voting &&
+                  `Vote for who you think the imposter is. Time left: ${countdownVote}`}
+              </span>
+            </div>
+          ) : abouttoStart ? (
+            <div className="animate-bounce">
+              Game is about to start, please wait... {countdownCount}
+            </div>
+          ) : (
+            <div>Game has not started</div>
+          )}
+        </div>
         <h1 className="font-bold text-xl text-slate-800">
           {props.nickname}{" "}
           <span className="ml-4 text-md font-light">{props.room}</span>
@@ -128,20 +313,22 @@ const Room = (props: Props) => {
             </svg>
           </label>
         </h1>
+
         <div className="flex flex-row flex-wrap gap-2 justify-center w-full">
           <div className="flex flex-col gap-2">
             <SketchPicker
               color={color}
               onChangeComplete={handleColorChangeComplete}
+              disableAlpha={true}
             />
 
-            <button
+            {/* <button
               type="button"
               className="btn mt-8"
               onClick={() => socket.emit("clear", props.room)}
             >
               Clear
-            </button>
+            </button> */}
 
             <button
               type="button"
@@ -155,6 +342,16 @@ const Room = (props: Props) => {
             >
               Quit Room
             </button>
+
+            {!abouttoStart && !gameStarted && (
+              <button
+                type="button"
+                className="btn"
+                onClick={handleClickGameStart}
+              >
+                Start Game
+              </button>
+            )}
           </div>
 
           <canvas
@@ -165,19 +362,53 @@ const Room = (props: Props) => {
           />
 
           <div id="users-and-chat" className="flex flex-col h-full">
-            <div className="h-1/4 w-full">
+            <div className="h-1/5 w-full">
               <Users
                 socket={socket}
                 room={props.room}
                 currentNickname={props.nickname}
+                voting={voting}
+                setVoteFor={setVoteFor}
               />
             </div>
-            <div className="h-3/4 w-full">
+            <div className="h-3/5 w-full">
               <Chat
                 socket={socket}
                 room={props.room}
                 currentNickname={props.nickname}
               />
+            </div>
+            <div className="h-1/5 w-full flex flex-col justify-end">
+              <ul className="steps text-sm font-light">
+                <li
+                  className={`step ${
+                    currentRound >= 0 && gameStarted && "step-accent"
+                  }`}
+                >
+                  Round1
+                </li>
+                <li
+                  className={`step ${
+                    currentRound >= 1 && gameStarted && "step-accent"
+                  }`}
+                >
+                  Round2
+                </li>
+                <li
+                  className={`step ${
+                    currentRound >= 2 && gameStarted && "step-accent"
+                  }`}
+                >
+                  Vote
+                </li>
+                <li
+                  className={`step ${
+                    currentRound >= 3 && gameStarted && "step-accent"
+                  }`}
+                >
+                  Results
+                </li>
+              </ul>
             </div>
           </div>
         </div>

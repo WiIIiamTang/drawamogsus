@@ -10,8 +10,8 @@ const Home: FunctionComponent<HomeProps> = () => {
     <main className="hero min-h-screen bg-gradient-to-b from-neutral to-primary">
       <div className="hero-content text-center rounded-md">
         <div className="max-w-md">
-          <h1 className="text-5xl font-bold">Drawing game</h1>
-          <p className="py-6">Cool amogus party game</p>
+          <h1 className="text-5xl font-bold">drawamogsus</h1>
+          <p className="py-6">stupid drawing party game</p>
           <Link href="/game">
             <button className="btn btn-primary">Play</button>
           </Link>

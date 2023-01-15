@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
 export const useDraw = (
-  onDraw: ({ ctx, currentPoint, prevPoint }: Draw) => void
+  onDraw: ({ ctx, currentPoint, prevPoint }: Draw) => void,
+  isDrawing: boolean
 ) => {
   const [mouseDown, setMouseDown] = useState(false);
 
@@ -29,7 +30,7 @@ export const useDraw = (
     };
 
     const handlemousemove = (e: MouseEvent) => {
-      if (!mouseDown) return;
+      if (!mouseDown || !isDrawing) return;
 
       const currentPoint = computeCanvasPoint(e);
 

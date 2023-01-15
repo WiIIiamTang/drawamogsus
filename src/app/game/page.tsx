@@ -17,8 +17,12 @@ const Game: FunctionComponent<GameProps> = () => {
   const [joiningRoom, setJoiningRoom] = useState(false);
   const [roomCode, setRoomCode] = useState("");
   const [nickname, setNickname] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [canEnterRoom, setCanEnterRoom] = useState(false);
-  const { invalidCode, setInvalidCode } = useAlertTimeout({ timeout: 2000 });
+  const { invalidCode, setInvalidCode } = useAlertTimeout({
+    timeout: 2000,
+    setErrorMessage,
+  });
   const roomRef = useRef<HTMLInputElement>(null);
   const nicknameRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -41,8 +45,14 @@ const Game: FunctionComponent<GameProps> = () => {
       "join_room",
       roomRef.current.value,
       nicknameRef.current.value,
-      function (success: boolean) {
+      function (success: boolean, takenNickname: boolean) {
         if (!roomRef.current || !nicknameRef.current) {
+          return;
+        }
+
+        if (takenNickname) {
+          setInvalidCode(true);
+          setErrorMessage("Nickname already taken");
           return;
         }
 
@@ -173,7 +183,11 @@ const Game: FunctionComponent<GameProps> = () => {
                   d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span>Invalid code and/or nickname.</span>
+              {errorMessage ? (
+                <span>{errorMessage}</span>
+              ) : (
+                <span>Invalid code and/or nickname.</span>
+              )}
             </div>
           </div>
         </div>

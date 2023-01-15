@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Socket } from "socket.io-client";
+import Image from "next/image";
 
 type Props = {
   socket: Socket;
@@ -14,9 +15,7 @@ type UserMessage = {
 
 const Chat = (props: Props) => {
   // messages from oldest to newest
-  const [messages, setMessages] = useState<Array<UserMessage>>([
-    { message: "test1", name: "bob" },
-  ]);
+  const [messages, setMessages] = useState<Array<UserMessage>>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const onFormMessageSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -57,6 +56,11 @@ const Chat = (props: Props) => {
     };
   }, [messages, props.socket]);
 
+  const isGif = (message: string) => {
+    // check if the message starts with tenor
+    return message.startsWith("https://tenor.com/view/");
+  };
+
   return (
     <div className="rounded border border-slate-400 bg-secondary flex flex-col">
       <h3 className="px-4 h-1/12 text-lg font-bold">Chat</h3>
@@ -69,8 +73,22 @@ const Chat = (props: Props) => {
             key={i}
           >
             <div className="chat-header">{message.name}</div>
-            <div className="chat-bubble chat-bubble-accent text-sm font-light mb-0 pb-0 break-all w-56">
-              {message.message}
+            <div className="chat-bubble chat-bubble-accent text-sm font-light mb-0 break-all w-56">
+              {isGif(message.message) ? (
+                <Image
+                  src={
+                    message.message.endsWith(".gif")
+                      ? message.message
+                      : message.message + ".gif"
+                  }
+                  alt="Custom user gif"
+                  width={200}
+                  height={64}
+                  className="rounded-md"
+                />
+              ) : (
+                message.message
+              )}
             </div>
           </div>
         ))}
