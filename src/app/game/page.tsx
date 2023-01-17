@@ -167,7 +167,7 @@ const Game: FunctionComponent<GameProps> = () => {
         />
       ) : (
         <div className="w-full flex justify-center items-center overflow-hidden">
-          <div className="w-1/2 h-fit flex flex-col justify-center items-center gap-5">
+          <div className="w-1/2 h-full flex flex-col justify-center items-center gap-5">
             <input
               type="text"
               placeholder="Nickname"
@@ -196,10 +196,11 @@ const Game: FunctionComponent<GameProps> = () => {
 
             <div
               tabIndex={0}
-              className="transition-all duration-500 ease-in-out"
+              className={`transition-all duration-500 ease-in-out ${
+                creatingRoom ? "h-[45%] md:h-[40%] 2xl:h-[30%]" : "h-0"
+              }`}
               style={{
                 width: creatingRoom ? "100%" : "0",
-                height: creatingRoom ? "35%" : "0",
                 opacity: creatingRoom ? 1 : 0,
               }}
             >
