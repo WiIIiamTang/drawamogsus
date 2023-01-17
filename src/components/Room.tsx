@@ -28,37 +28,62 @@ type Props = {
   room: string;
   setRoomCode: (room: string) => void;
   setJoiningRoom: (joiningRoom: boolean) => void;
+  setCreatingRoom: (creatingRoom: boolean) => void;
   setNickname: (nickname: string) => void;
   nickname: string;
   socket: Socket;
+  timeBeforeStart: number;
+  timeDraw: number;
+  timeVote: number;
+  rounds: number;
+  userScoresWhenJoining?: Array<UserScore>;
+  useSketchColors: boolean;
+  setUseSketchColors: (useSketchColors: boolean) => void;
+};
+
+type UserScore = {
+  name: string;
+  score: number;
 };
 
 const Room = (props: Props) => {
   const socket = props.socket;
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
-  const [userScore, setUserScore] = useState<number>(0);
+  const [numberGames, setNumberGames] = useState<number>(0);
+  const [userScores, setUserScores] = useState<Array<UserScore>>([]);
   const [countdownCount, setCountdownCount] = useState<number>(0);
   const [countdownDraw, setCountdownDraw] = useState<number>(0);
   const [countdownVote, setCountdownVote] = useState<number>(0);
   const [currentDrawer, setCurrentDrawer] = useState<string>("");
   const [currentRound, setCurrentRound] = useState<number>(0);
+  const [sendVote, setSendVote] = useState<boolean>(false);
+  const [showResults, setShowResults] = useState<boolean>(false);
+  const [imposter, setImposter] = useState<string>("");
   const [voting, setVoting] = useState<boolean>(false);
   const [votefor, setVoteFor] = useState<string>("");
   const [word, setWord] = useState<string>("");
+  const [publicWord, setPublicWord] = useState<string>("");
   const { canvasRef, onMouseDown, clear } = useDraw(createLine, isDrawing);
   const [color, setColor] = useState<string>("#000");
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [abouttoStart, setAbouttoStart] = useState<boolean>(false);
   const [role, setRole] = useState<string>("");
+  const [usersFooled, setUsersFooled] = useState<number>(0);
   const [canvasWidth, setCanvasWidth] = useState<number>(window.outerWidth / 2);
   const [canvasHeight, setCanvasHeight] = useState<number>(
     window.outerHeight / 2
   );
   const handleColorChangeComplete = (color: ColorResult) => setColor(color.hex);
-  const timeBeforeStart = 5;
-  const timeDraw = 8;
-  const timeVote = 10;
-  const rounds = 2;
+  const timeBeforeStart = props.timeBeforeStart;
+  const timeDraw = props.timeDraw;
+  const timeVote = props.timeVote;
+  const rounds = props.rounds;
+
+  useEffect(() => {
+    if (props.userScoresWhenJoining) {
+      setUserScores(props.userScoresWhenJoining);
+    }
+  }, [props.userScoresWhenJoining]);
 
   useSocketDraw(canvasRef, socket, clear);
 
@@ -91,7 +116,6 @@ const Room = (props: Props) => {
   // this is used to resize the canvas at load
   useEffect(() => {
     handleResizeCanvas(canvasRef, canvasHeight + 100, canvasWidth); // TODO: +100 is a stupid temporary fix
-    console.log("canvas resized", canvasWidth, canvasHeight);
 
     // window.addEventListener("resize", () => {
     //   setCanvasWidth(window.outerWidth / 2);
@@ -113,8 +137,10 @@ const Room = (props: Props) => {
       (role: string, firstdraw: boolean, word: string, drawer: string) => {
         setCountdownCount(timeBeforeStart);
         setAbouttoStart(true);
+        setPublicWord("");
 
         setTimeout(() => {
+          setCurrentRound(0);
           setAbouttoStart(false);
           setGameStarted(true);
           setRole(role);
@@ -124,34 +150,32 @@ const Room = (props: Props) => {
             setCurrentDrawer(drawer);
             setCountdownDraw(timeDraw);
           }
-          console.log("role assigned", role, firstdraw, word, drawer);
         }, timeBeforeStart * 1000);
       }
     );
 
     socket.on("game_end", () => {
-      console.log("rounds ended");
       setCurrentRound(2);
       setCountdownVote(timeVote);
       setVoting(true);
 
       setTimeout(() => {
+        setSendVote(true);
         setVoting(false);
         setGameStarted(false);
         setAbouttoStart(false);
         setCountdownCount(0);
         setCountdownDraw(0);
         setWord("");
-        setRole("");
+        // setRole("");
         setCurrentDrawer("");
         //setVoteFor("");
         setIsDrawing(false);
         setCurrentRound(3);
-      }, 10000);
+      }, timeVote * 1000);
     });
 
     socket.on("new_drawer", (drawer: string, round: number) => {
-      console.log("new drawer", drawer, round);
       if (drawer === props.nickname) {
         setIsDrawing(true);
         setCountdownDraw(timeDraw);
@@ -165,12 +189,24 @@ const Room = (props: Props) => {
       }
     });
 
+    socket.on("show_public_word", (word: string) => {
+      setPublicWord(word);
+    });
+
     return () => {
       socket.off("assign_role");
       socket.off("game_end");
       socket.off("new_drawer");
+      socket.off("show_public_word");
     };
-  }, [socket, props.nickname, currentRound]);
+  }, [
+    socket,
+    props.nickname,
+    currentRound,
+    timeBeforeStart,
+    timeDraw,
+    timeVote,
+  ]);
 
   useEffect(() => {
     // coutdown timer
@@ -201,7 +237,6 @@ const Room = (props: Props) => {
         setCountdownDraw((countdownDraw) => countdownDraw - 1);
         if (countdownDraw === 0) {
           setIsDrawing(false);
-          console.log("player is done drawing");
           socket.emit(
             "done_drawing",
             props.room,
@@ -209,17 +244,14 @@ const Room = (props: Props) => {
             word,
             currentRound,
             (shouldDrawNext: boolean, round: number) => {
-              console.log("done drawing callback");
               if (round !== currentRound) {
                 setCurrentRound(round);
               }
 
               if (shouldDrawNext) {
-                console.log("should draw next");
                 setCountdownDraw(timeDraw);
                 setIsDrawing(true);
               } else {
-                console.log("should not draw next");
                 setCountdownDraw(0);
                 setIsDrawing(false);
               }
@@ -239,9 +271,16 @@ const Room = (props: Props) => {
     socket,
     word,
     currentRound,
+    timeDraw,
   ]);
 
   const handleClickGameStart = () => {
+    setShowResults(false);
+    setImposter("");
+    setSendVote(false);
+    setCurrentRound(0);
+    setVoteFor("");
+    setPublicWord("");
     socket.emit("clear", props.room);
     socket.emit("game_start", props.room, props.nickname);
   };
@@ -273,8 +312,19 @@ const Room = (props: Props) => {
             <div className="animate-bounce">
               Game is about to start, please wait... {countdownCount}
             </div>
+          ) : showResults ? (
+            <div className="flex flex-col justify-center items-center gap-4">
+              <span>
+                The imposter was {imposter}!{" "}
+                {role !== "imposter"
+                  ? imposter === votefor
+                    ? `You guessed correctly! The word was ${publicWord}.`
+                    : `You didn't guess correctly. The word was ${publicWord}.`
+                  : `You fooled ${usersFooled} people! The word was ${publicWord}.`}
+              </span>
+            </div>
           ) : (
-            <div>Game has not started</div>
+            <div>Game has not started yet</div>
           )}
         </div>
         <h1 className="font-bold text-xl text-slate-800">
@@ -282,7 +332,6 @@ const Room = (props: Props) => {
           <span className="ml-4 text-md font-light">{props.room}</span>
           <label
             onClick={() => {
-              console.log("clicked");
               navigator.clipboard.writeText(props.room);
             }}
             className="btn btn-circle swap swap-rotate bg-transparent border-0 hover:bg-transparent"
@@ -316,11 +365,13 @@ const Room = (props: Props) => {
 
         <div className="flex flex-row flex-wrap gap-2 justify-center w-full">
           <div className="flex flex-col gap-2">
-            <SketchPicker
-              color={color}
-              onChangeComplete={handleColorChangeComplete}
-              disableAlpha={true}
-            />
+            {props.useSketchColors && (
+              <SketchPicker
+                color={color}
+                onChangeComplete={handleColorChangeComplete}
+                disableAlpha={true}
+              />
+            )}
 
             {/* <button
               type="button"
@@ -335,8 +386,10 @@ const Room = (props: Props) => {
               className="btn"
               onClick={() => {
                 props.setJoiningRoom(false);
+                props.setCreatingRoom(false);
                 props.setRoomCode("");
                 props.setNickname(props.nickname);
+                props.setUseSketchColors(true);
                 socket.emit("leave_room", props.room, props.nickname);
               }}
             >
@@ -369,6 +422,15 @@ const Room = (props: Props) => {
                 currentNickname={props.nickname}
                 voting={voting}
                 setVoteFor={setVoteFor}
+                userScores={userScores}
+                setUserScores={setUserScores}
+                setImposter={setImposter}
+                setShowResults={setShowResults}
+                sendVote={sendVote}
+                votefor={votefor}
+                setSendVote={setSendVote}
+                role={role}
+                setUsersFooled={setUsersFooled}
               />
             </div>
             <div className="h-3/5 w-full">
@@ -378,35 +440,39 @@ const Room = (props: Props) => {
                 currentNickname={props.nickname}
               />
             </div>
-            <div className="h-1/5 w-full flex flex-col justify-end">
+            <div className="h-1/5 max-w-xs flex flex-col justify-end">
               <ul className="steps text-sm font-light">
-                <li
-                  className={`step ${
-                    currentRound >= 0 && gameStarted && "step-accent"
-                  }`}
-                >
-                  Round1
+                {Array(rounds)
+                  .fill(0)
+                  .map((_, i) => {
+                    if (i === 0) {
+                      return (
+                        <li
+                          key={i}
+                          className={`step ${
+                            currentRound >= i &&
+                            (gameStarted || showResults) &&
+                            "step-accent"
+                          }`}
+                        >
+                          {rounds < 4 && `Round${i + 1}`}
+                        </li>
+                      );
+                    }
+                    return (
+                      <li
+                        key={i}
+                        className={`step ${currentRound >= i && "step-accent"}`}
+                      >
+                        {rounds < 4 && `Round${i + 1}`}
+                      </li>
+                    );
+                  })}
+                <li className={`step ${currentRound >= 2 && "step-accent"}`}>
+                  {rounds < 4 && `Vote`}
                 </li>
-                <li
-                  className={`step ${
-                    currentRound >= 1 && gameStarted && "step-accent"
-                  }`}
-                >
-                  Round2
-                </li>
-                <li
-                  className={`step ${
-                    currentRound >= 2 && gameStarted && "step-accent"
-                  }`}
-                >
-                  Vote
-                </li>
-                <li
-                  className={`step ${
-                    currentRound >= 3 && gameStarted && "step-accent"
-                  }`}
-                >
-                  Results
+                <li className={`step ${currentRound >= 3 && "step-accent"}`}>
+                  {rounds < 4 && `Results`}
                 </li>
               </ul>
             </div>

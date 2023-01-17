@@ -1,6 +1,12 @@
 "use client";
 
-import { FunctionComponent, useRef, useState, useEffect } from "react";
+import React, {
+  FunctionComponent,
+  useRef,
+  useState,
+  useEffect,
+  MouseEventHandler,
+} from "react";
 import Link from "next/link";
 import useAlertTimeout from "@/hooks/useAlertTimeout";
 import { useRouter } from "next/navigation";
@@ -13,25 +19,45 @@ const socket = io(
 
 interface GameProps {}
 
+type UserScore = {
+  name: string;
+  score: number;
+};
+
 const Game: FunctionComponent<GameProps> = () => {
   const [joiningRoom, setJoiningRoom] = useState(false);
+  const [creatingRoom, setCreatingRoom] = useState(false);
   const [roomCode, setRoomCode] = useState("");
   const [nickname, setNickname] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [canEnterRoom, setCanEnterRoom] = useState(false);
+  const [userScoresWhenJoining, setUserScoresWhenJoining] = useState<
+    Array<UserScore>
+  >([]);
+  const [timeStart, setTimeStart] = useState(5);
+  const [timeVote, setTimeVote] = useState(10);
+  const [timeDraw, setTimeDraw] = useState(8);
+  const [numberRounds, setNumberRounds] = useState(2);
   const { invalidCode, setInvalidCode } = useAlertTimeout({
     timeout: 2000,
     setErrorMessage,
   });
+  const [useColors, setUseColors] = useState(true);
   const roomRef = useRef<HTMLInputElement>(null);
   const nicknameRef = useRef<HTMLInputElement>(null);
+  const timeStartRef = useRef<HTMLInputElement>(null);
+  const timeVoteRef = useRef<HTMLInputElement>(null);
+  const timeDrawRef = useRef<HTMLInputElement>(null);
+  const numberRoundsRef = useRef<HTMLInputElement>(null);
+  const wordCategoryRef = useRef<HTMLSelectElement>(null);
   const router = useRouter();
 
   const handleClickJoin = () => {
     setJoiningRoom(!joiningRoom);
   };
 
-  const handleClickGo = () => {
+  const handleClickGo = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     if (!roomRef.current || !nicknameRef.current) {
       return;
     }
@@ -45,14 +71,22 @@ const Game: FunctionComponent<GameProps> = () => {
       "join_room",
       roomRef.current.value,
       nicknameRef.current.value,
-      function (success: boolean, takenNickname: boolean) {
+      function (
+        success: boolean,
+        takenNickname: boolean,
+        timeToStart: number,
+        timeToDraw: number,
+        timeToVote: number,
+        rounds: number,
+        userScores: Array<UserScore>
+      ) {
         if (!roomRef.current || !nicknameRef.current) {
           return;
         }
 
         if (takenNickname) {
-          setInvalidCode(true);
           setErrorMessage("Nickname already taken");
+          setInvalidCode(true);
           return;
         }
 
@@ -61,8 +95,15 @@ const Game: FunctionComponent<GameProps> = () => {
           return;
         }
 
+        setTimeStart(timeToStart);
+        setTimeDraw(timeToDraw);
+        setTimeVote(timeToVote);
+        setNumberRounds(rounds);
+        setUserScoresWhenJoining(userScores);
+
         setRoomCode(roomRef.current.value);
         setNickname(nicknameRef.current.value);
+
         socket.emit("room_user_update", roomRef.current.value);
       }
     );
@@ -85,6 +126,11 @@ const Game: FunctionComponent<GameProps> = () => {
       "create_room",
       code,
       nicknameRef.current.value,
+      numberRounds,
+      timeDraw,
+      timeStart,
+      timeVote,
+      wordCategoryRef.current?.value || "animal",
       function (success: boolean) {
         if (!success) {
           setInvalidCode(true);
@@ -95,6 +141,11 @@ const Game: FunctionComponent<GameProps> = () => {
     );
   };
 
+  const handleClickCreateSetup = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    handleClickCreate();
+  };
+
   return (
     <div className="bg-primary h-screen w-screen flex justify-center">
       {roomCode ? (
@@ -103,8 +154,16 @@ const Game: FunctionComponent<GameProps> = () => {
           setRoomCode={setRoomCode}
           setJoiningRoom={setJoiningRoom}
           setNickname={setNickname}
+          setCreatingRoom={setCreatingRoom}
           nickname={nickname}
           socket={socket}
+          timeBeforeStart={timeStart}
+          timeDraw={timeDraw}
+          timeVote={timeVote}
+          rounds={numberRounds}
+          userScoresWhenJoining={userScoresWhenJoining}
+          useSketchColors={useColors}
+          setUseSketchColors={setUseColors}
         />
       ) : (
         <div className="w-1/2 h-full flex flex-col justify-center items-center gap-5">
@@ -116,9 +175,134 @@ const Game: FunctionComponent<GameProps> = () => {
             defaultValue={nickname}
           />
 
-          <button className="btn w-full" onClick={handleClickCreate}>
-            <p>Create a game</p>
-          </button>
+          <div className="flex justify-center items-center w-full">
+            <label
+              className={`${
+                creatingRoom ? "btn-error w-14" : "w-full"
+              } swap btn transition-all duration-500 ease-in-out px-8`}
+            >
+              <input
+                type="checkbox"
+                className="select-none cursor-pointer hidden"
+                onClick={() => setCreatingRoom(!creatingRoom)}
+              />
+              <div className="swap-on select-none cursor-pointer">Cancel</div>
+              <div className="swap-off select-none cursor-pointer">
+                Create a game
+              </div>
+            </label>
+          </div>
+
+          <div
+            tabIndex={0}
+            className="transition-all duration-500 ease-in-out"
+            style={{
+              width: creatingRoom ? "100%" : "0",
+              height: creatingRoom ? "35%" : "0",
+              opacity: creatingRoom ? 1 : 0,
+            }}
+          >
+            <form className="flex flex-col justify-center items-center transition-all duration-500 ease-in-out">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    onChange={(e) => setTimeStart(Number(e.target.value))}
+                    value={timeStart}
+                    className="range w-full range-secondary"
+                  />
+                  <span className="text-xs font-extralight w-full">
+                    Time before start: {timeStart}
+                  </span>
+                </div>
+                <div>
+                  <input
+                    type="range"
+                    min="5"
+                    max="60"
+                    onChange={(e) => setTimeDraw(Number(e.target.value))}
+                    value={timeDraw}
+                    className="range w-full range-secondary"
+                  />
+                  <span className="text-xs font-extralight w-full">
+                    Time to draw: {timeDraw}
+                  </span>
+                </div>
+                <div>
+                  <input
+                    type="range"
+                    min="5"
+                    max="120"
+                    onChange={(e) => setTimeVote(Number(e.target.value))}
+                    value={timeVote}
+                    className="range w-full range-secondary"
+                  />
+                  <span className="text-xs font-extralight w-full">
+                    Time to vote: {timeVote}
+                  </span>
+                </div>
+                <div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="7"
+                    onChange={(e) => setNumberRounds(Number(e.target.value))}
+                    value={numberRounds}
+                    className="range w-full range-secondary"
+                  />
+                  <span className="text-xs font-extralight w-full">
+                    Rounds before vote: {numberRounds}
+                  </span>
+                </div>
+                <div>
+                  <select
+                    className="select select-secondary w-full max-w-xs select-sm"
+                    ref={wordCategoryRef}
+                  >
+                    <option value="" disabled selected>
+                      Word Category
+                    </option>
+                    <option value="animal">animal</option>
+                    <option value="anatomy">anatomy</option>
+                    <option value="clothing">clothing</option>
+                    <option value="country">country</option>
+                    <option value="family">family</option>
+                    <option value="food">food</option>
+                    <option value="instrument">instrument</option>
+                    <option value="mythology">mythology</option>
+                    <option value="pop culture">pop culture</option>
+                    <option value="profession">profession</option>
+                    <option value="sports">sports</option>
+                    <option value="vehicle">vehicle</option>
+                    <option value="weapon">weapon</option>
+                  </select>
+                </div>
+                <div>
+                  <div className="form-control w-full">
+                    <label className="cursor-pointer label">
+                      <span className="label-text">Use colors</span>
+                      <input
+                        type="checkbox"
+                        className="toggle toggle-secondary"
+                        defaultChecked
+                        onLoad={() => setUseColors(true)}
+                        onChange={(e) => setUseColors(e.target.checked)}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="submit"
+                className="btn btn-success mt-4"
+                onClick={handleClickCreateSetup}
+              >
+                Go
+              </button>
+            </form>
+          </div>
 
           <div className="flex justify-center items-center w-full">
             <label
@@ -146,17 +330,21 @@ const Game: FunctionComponent<GameProps> = () => {
                 opacity: joiningRoom ? 1 : 0,
               }}
             >
-              <div className="input-group">
+              <form className="input-group">
                 <input
                   type="text"
                   placeholder="Room code"
                   className="input w-full ml-2"
                   ref={roomRef}
                 />
-                <button className="btn btn-success" onClick={handleClickGo}>
+                <button
+                  type="submit"
+                  className="btn btn-success"
+                  onClick={handleClickGo}
+                >
                   Go
                 </button>
-              </div>
+              </form>
             </div>
           </div>
 

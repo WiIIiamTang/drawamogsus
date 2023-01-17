@@ -23,7 +23,6 @@ const Chat = (props: Props) => {
     // get input value
     const input = e.currentTarget[0] as HTMLInputElement;
     const message = input.value;
-    console.log(message);
 
     // add to messages
     setMessages((messages) => [
