@@ -166,216 +166,218 @@ const Game: FunctionComponent<GameProps> = () => {
           setUseSketchColors={setUseColors}
         />
       ) : (
-        <div className="w-1/2 h-full flex flex-col justify-center items-center gap-5">
-          <input
-            type="text"
-            placeholder="Nickname"
-            className="input w-full max-w-xs"
-            ref={nicknameRef}
-            defaultValue={nickname}
-          />
+        <div className="w-full flex justify-center items-center overflow-hidden">
+          <div className="w-1/2 h-fit flex flex-col justify-center items-center gap-5">
+            <input
+              type="text"
+              placeholder="Nickname"
+              className="input w-full max-w-xs"
+              ref={nicknameRef}
+              defaultValue={nickname}
+            />
 
-          <div className="flex justify-center items-center w-full">
-            <label
-              className={`${
-                creatingRoom ? "btn-error w-14" : "w-full"
-              } swap btn transition-all duration-500 ease-in-out px-8`}
-            >
-              <input
-                type="checkbox"
-                className="select-none cursor-pointer hidden"
-                onClick={() => setCreatingRoom(!creatingRoom)}
-              />
-              <div className="swap-on select-none cursor-pointer">Cancel</div>
-              <div className="swap-off select-none cursor-pointer">
-                Create a game
-              </div>
-            </label>
-          </div>
-
-          <div
-            tabIndex={0}
-            className="transition-all duration-500 ease-in-out"
-            style={{
-              width: creatingRoom ? "100%" : "0",
-              height: creatingRoom ? "35%" : "0",
-              opacity: creatingRoom ? 1 : 0,
-            }}
-          >
-            <form className="flex flex-col justify-center items-center transition-all duration-500 ease-in-out">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="10"
-                    onChange={(e) => setTimeStart(Number(e.target.value))}
-                    value={timeStart}
-                    className="range w-full range-secondary"
-                  />
-                  <span className="text-xs font-extralight w-full">
-                    Time before start: {timeStart}
-                  </span>
-                </div>
-                <div>
-                  <input
-                    type="range"
-                    min="5"
-                    max="60"
-                    onChange={(e) => setTimeDraw(Number(e.target.value))}
-                    value={timeDraw}
-                    className="range w-full range-secondary"
-                  />
-                  <span className="text-xs font-extralight w-full">
-                    Time to draw: {timeDraw}
-                  </span>
-                </div>
-                <div>
-                  <input
-                    type="range"
-                    min="5"
-                    max="120"
-                    onChange={(e) => setTimeVote(Number(e.target.value))}
-                    value={timeVote}
-                    className="range w-full range-secondary"
-                  />
-                  <span className="text-xs font-extralight w-full">
-                    Time to vote: {timeVote}
-                  </span>
-                </div>
-                <div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="7"
-                    onChange={(e) => setNumberRounds(Number(e.target.value))}
-                    value={numberRounds}
-                    className="range w-full range-secondary"
-                  />
-                  <span className="text-xs font-extralight w-full">
-                    Rounds before vote: {numberRounds}
-                  </span>
-                </div>
-                <div>
-                  <select
-                    className="select select-secondary w-full max-w-xs select-sm"
-                    ref={wordCategoryRef}
-                  >
-                    <option value="" disabled selected>
-                      Word Category
-                    </option>
-                    <option value="animal">animal</option>
-                    <option value="anatomy">anatomy</option>
-                    <option value="clothing">clothing</option>
-                    <option value="country">country</option>
-                    <option value="family">family</option>
-                    <option value="food">food</option>
-                    <option value="instrument">instrument</option>
-                    <option value="mythology">mythology</option>
-                    <option value="pop culture">pop culture</option>
-                    <option value="profession">profession</option>
-                    <option value="sports">sports</option>
-                    <option value="vehicle">vehicle</option>
-                    <option value="weapon">weapon</option>
-                  </select>
-                </div>
-                <div>
-                  <div className="form-control w-full">
-                    <label className="cursor-pointer label">
-                      <span className="label-text">Use colors</span>
-                      <input
-                        type="checkbox"
-                        className="toggle toggle-secondary"
-                        defaultChecked
-                        onLoad={() => setUseColors(true)}
-                        onChange={(e) => setUseColors(e.target.checked)}
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <button
-                type="submit"
-                className="btn btn-success mt-4"
-                onClick={handleClickCreateSetup}
+            <div className="flex justify-center items-center w-full">
+              <label
+                className={`${
+                  creatingRoom ? "btn-error w-14" : "w-full"
+                } swap btn transition-all duration-500 ease-in-out px-8`}
               >
-                Go
-              </button>
-            </form>
-          </div>
-
-          <div className="flex justify-center items-center w-full">
-            <label
-              className={`${
-                joiningRoom ? "btn-error w-14" : "w-full"
-              } swap btn transition-all duration-500 ease-in-out px-8`}
-            >
-              <input
-                type="checkbox"
-                className="select-none cursor-pointer hidden"
-                onClick={handleClickJoin}
-              />
-              <div className="swap-on select-none cursor-pointer">Cancel</div>
-              <div className="swap-off select-none cursor-pointer">
-                Join a game
-              </div>
-            </label>
+                <input
+                  type="checkbox"
+                  className="select-none cursor-pointer hidden"
+                  onClick={() => setCreatingRoom(!creatingRoom)}
+                />
+                <div className="swap-on select-none cursor-pointer">Cancel</div>
+                <div className="swap-off select-none cursor-pointer">
+                  Create a game
+                </div>
+              </label>
+            </div>
 
             <div
               tabIndex={0}
-              className="bg-transparent flex justify-center text-primary-content transition-all duration-500 ease-in-out"
+              className="transition-all duration-500 ease-in-out"
               style={{
-                width: joiningRoom ? "100%" : "0",
-                height: joiningRoom ? "100%" : "0",
-                opacity: joiningRoom ? 1 : 0,
+                width: creatingRoom ? "100%" : "0",
+                height: creatingRoom ? "35%" : "0",
+                opacity: creatingRoom ? 1 : 0,
               }}
             >
-              <form className="input-group">
-                <input
-                  type="text"
-                  placeholder="Room code"
-                  className="input w-full ml-2"
-                  ref={roomRef}
-                />
+              <form className="flex flex-col justify-center items-center transition-all duration-500 ease-in-out">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="10"
+                      onChange={(e) => setTimeStart(Number(e.target.value))}
+                      value={timeStart}
+                      className="range w-full range-secondary"
+                    />
+                    <span className="text-xs font-extralight w-full">
+                      Time before start: {timeStart}
+                    </span>
+                  </div>
+                  <div>
+                    <input
+                      type="range"
+                      min="5"
+                      max="60"
+                      onChange={(e) => setTimeDraw(Number(e.target.value))}
+                      value={timeDraw}
+                      className="range w-full range-secondary"
+                    />
+                    <span className="text-xs font-extralight w-full">
+                      Time to draw: {timeDraw}
+                    </span>
+                  </div>
+                  <div>
+                    <input
+                      type="range"
+                      min="5"
+                      max="120"
+                      onChange={(e) => setTimeVote(Number(e.target.value))}
+                      value={timeVote}
+                      className="range w-full range-secondary"
+                    />
+                    <span className="text-xs font-extralight w-full">
+                      Time to vote: {timeVote}
+                    </span>
+                  </div>
+                  <div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="7"
+                      onChange={(e) => setNumberRounds(Number(e.target.value))}
+                      value={numberRounds}
+                      className="range w-full range-secondary"
+                    />
+                    <span className="text-xs font-extralight w-full">
+                      Rounds before vote: {numberRounds}
+                    </span>
+                  </div>
+                  <div>
+                    <select
+                      className="select select-secondary w-full max-w-xs select-sm"
+                      ref={wordCategoryRef}
+                    >
+                      <option value="" disabled selected>
+                        Word Category
+                      </option>
+                      <option value="animal">animal</option>
+                      <option value="anatomy">anatomy</option>
+                      <option value="clothing">clothing</option>
+                      <option value="country">country</option>
+                      <option value="family">family</option>
+                      <option value="food">food</option>
+                      <option value="instrument">instrument</option>
+                      <option value="mythology">mythology</option>
+                      <option value="pop culture">pop culture</option>
+                      <option value="profession">profession</option>
+                      <option value="sports">sports</option>
+                      <option value="vehicle">vehicle</option>
+                      <option value="weapon">weapon</option>
+                    </select>
+                  </div>
+                  <div>
+                    <div className="form-control w-full">
+                      <label className="cursor-pointer label">
+                        <span className="label-text">Use colors</span>
+                        <input
+                          type="checkbox"
+                          className="toggle toggle-secondary"
+                          defaultChecked
+                          onLoad={() => setUseColors(true)}
+                          onChange={(e) => setUseColors(e.target.checked)}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
                 <button
                   type="submit"
-                  className="btn btn-success"
-                  onClick={handleClickGo}
+                  className="btn btn-success mt-4"
+                  onClick={handleClickCreateSetup}
                 >
                   Go
                 </button>
               </form>
             </div>
-          </div>
 
-          <Link href="/" className="xl:mt-24 mt-10 w-full">
-            <button className="btn w-full">Back to Home</button>
-          </Link>
-
-          <div
-            className={`alert alert-error shadow-lg absolute bottom-12 w-1/2 ${
-              invalidCode ? "opacity-100" : "opacity-0"
-            } transition-all duration-500 ease-linear`}
-          >
-            <div>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="stroke-current flex-shrink-0 h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
+            <div className="flex justify-center items-center w-full">
+              <label
+                className={`${
+                  joiningRoom ? "btn-error w-14" : "w-full"
+                } swap btn transition-all duration-500 ease-in-out px-8`}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                <input
+                  type="checkbox"
+                  className="select-none cursor-pointer hidden"
+                  onClick={handleClickJoin}
                 />
-              </svg>
-              {errorMessage ? (
-                <span>{errorMessage}</span>
-              ) : (
-                <span>Invalid code and/or nickname.</span>
-              )}
+                <div className="swap-on select-none cursor-pointer">Cancel</div>
+                <div className="swap-off select-none cursor-pointer">
+                  Join a game
+                </div>
+              </label>
+
+              <div
+                tabIndex={0}
+                className="bg-transparent flex justify-center text-primary-content transition-all duration-500 ease-in-out"
+                style={{
+                  width: joiningRoom ? "100%" : "0",
+                  height: joiningRoom ? "100%" : "0",
+                  opacity: joiningRoom ? 1 : 0,
+                }}
+              >
+                <form className="input-group">
+                  <input
+                    type="text"
+                    placeholder="Room code"
+                    className="input w-full ml-2"
+                    ref={roomRef}
+                  />
+                  <button
+                    type="submit"
+                    className="btn btn-success"
+                    onClick={handleClickGo}
+                  >
+                    Go
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <Link href="/" className="xl:mt-24 mt-10 w-full">
+              <button className="btn w-full">Back to Home</button>
+            </Link>
+
+            <div
+              className={`alert alert-error shadow-lg absolute bottom-12 w-1/2 ${
+                invalidCode ? "opacity-100" : "opacity-0"
+              } transition-all duration-500 ease-linear`}
+            >
+              <div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="stroke-current flex-shrink-0 h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                {errorMessage ? (
+                  <span>{errorMessage}</span>
+                ) : (
+                  <span>Invalid code and/or nickname.</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
