@@ -39,6 +39,8 @@ type Props = {
   userScoresWhenJoining?: Array<UserScore>;
   useSketchColors: boolean;
   setUseSketchColors: (useSketchColors: boolean) => void;
+  useFakeWords: boolean;
+  setUseFakeWords: (useFakeWords: boolean) => void;
 };
 
 type UserScore = {
@@ -390,6 +392,7 @@ const Room = (props: Props) => {
                 props.setRoomCode("");
                 props.setNickname(props.nickname);
                 props.setUseSketchColors(true);
+                props.setUseFakeWords(false);
                 socket.emit("leave_room", props.room, props.nickname);
               }}
             >

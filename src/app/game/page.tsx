@@ -43,6 +43,7 @@ const Game: FunctionComponent<GameProps> = () => {
     setErrorMessage,
   });
   const [useColors, setUseColors] = useState(true);
+  const [useFakeWords, setUseFakeWords] = useState(false);
   const roomRef = useRef<HTMLInputElement>(null);
   const nicknameRef = useRef<HTMLInputElement>(null);
   const timeStartRef = useRef<HTMLInputElement>(null);
@@ -131,6 +132,7 @@ const Game: FunctionComponent<GameProps> = () => {
       timeStart,
       timeVote,
       wordCategoryRef.current?.value || "animal",
+      useFakeWords,
       function (success: boolean) {
         if (!success) {
           setInvalidCode(true);
@@ -164,6 +166,8 @@ const Game: FunctionComponent<GameProps> = () => {
           userScoresWhenJoining={userScoresWhenJoining}
           useSketchColors={useColors}
           setUseSketchColors={setUseColors}
+          useFakeWords={useFakeWords}
+          setUseFakeWords={setUseFakeWords}
         />
       ) : (
         <div className="w-full flex justify-center items-center overflow-hidden">
@@ -281,16 +285,29 @@ const Game: FunctionComponent<GameProps> = () => {
                       <option value="weapon">weapon</option>
                     </select>
                   </div>
-                  <div>
-                    <div className="form-control w-full">
+                  <div className="w-full flex flex-row">
+                    <div className="form-control w-1/2">
                       <label className="cursor-pointer label">
-                        <span className="label-text">Use colors</span>
+                        <span className="label-text text-xs">Colors</span>
                         <input
                           type="checkbox"
                           className="toggle toggle-secondary"
                           defaultChecked
                           onLoad={() => setUseColors(true)}
                           onChange={(e) => setUseColors(e.target.checked)}
+                          checked={useColors}
+                        />
+                      </label>
+                    </div>
+                    <div className="form-control w-1/2">
+                      <label className="cursor-pointer label">
+                        <span className="label-text text-xs">Fake word</span>
+                        <input
+                          type="checkbox"
+                          className="toggle toggle-secondary"
+                          onLoad={() => setUseFakeWords(false)}
+                          onChange={(e) => setUseFakeWords(e.target.checked)}
+                          checked={useFakeWords}
                         />
                       </label>
                     </div>

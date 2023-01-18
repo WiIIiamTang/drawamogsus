@@ -11,10 +11,17 @@ const Home: FunctionComponent<HomeProps> = () => {
       <div className="hero-content text-center rounded-md">
         <div className="max-w-md">
           <h1 className="text-5xl font-bold">drawamogsus</h1>
-          <p className="py-6">stupid drawing party game</p>
-          <Link href="/game">
-            <button className="btn btn-primary">Play</button>
-          </Link>
+          <div>
+            <p className="py-6">stupid drawing party game</p>
+          </div>
+          <div className="flex flex-col gap-4 justify-center items-center">
+            <Link href="/game" className="btn btn-primary">
+              <button>Play</button>
+            </Link>
+            <Link href="/howtoplay" className="btn btn-primary">
+              <button>How to play</button>
+            </Link>
+          </div>
         </div>
       </div>
     </main>
