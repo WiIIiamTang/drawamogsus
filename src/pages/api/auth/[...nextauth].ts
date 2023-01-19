@@ -19,6 +19,15 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
+    async signIn({ user, account, profile, email, credentials }) {
+      const discordAccountId = user.id;
+
+      if (!discordAccountId) {
+        return false;
+      }
+
+      return true;
+    },
   },
   // Configure one or more authentication providers
   providers: [

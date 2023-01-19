@@ -131,7 +131,9 @@ const Game: FunctionComponent<GameProps> = () => {
       timeDraw,
       timeStart,
       timeVote,
-      wordCategoryRef.current?.value || "animal",
+      (wordCategoryRef.current?.value === "wordcategory"
+        ? "animal"
+        : wordCategoryRef.current?.value) || "animal",
       useFakeWords,
       function (success: boolean) {
         if (!success) {
@@ -266,8 +268,9 @@ const Game: FunctionComponent<GameProps> = () => {
                     <select
                       className="select select-secondary w-full max-w-xs select-sm"
                       ref={wordCategoryRef}
+                      defaultValue={"wordcategory"}
                     >
-                      <option value="" disabled selected>
+                      <option value="wordcategory" disabled>
                         Word Category
                       </option>
                       <option value="animal">animal</option>
@@ -292,7 +295,6 @@ const Game: FunctionComponent<GameProps> = () => {
                         <input
                           type="checkbox"
                           className="toggle toggle-secondary"
-                          defaultChecked
                           onLoad={() => setUseColors(true)}
                           onChange={(e) => setUseColors(e.target.checked)}
                           checked={useColors}

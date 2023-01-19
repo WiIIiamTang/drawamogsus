@@ -12,7 +12,8 @@ const Instructions: FunctionComponent<InstructionsProps> = () => {
           <h2 className="text-3xl font-bold mt-4 pt-4">Number of players</h2>
           <p className="py-2">
             Better played with at least 4-5 people. When using the fake word
-            setting, 7+ players are recommended.
+            setting, 7+ players are recommended. You do not have to be signed in
+            to play.
           </p>
           <h2 className="text-3xl font-bold mt-4">Gameplay</h2>
           <div className="py-2 overflow-y-auto">

@@ -1,11 +1,13 @@
 import { SignIn, SignOut } from "./AuthActions";
-import { unstable_getServerSession } from "next-auth/next";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import Image from "next/image";
+import type { Session } from "next-auth/core/types";
 
-async function Auth() {
-  const session = await unstable_getServerSession(authOptions);
+type AuthProps = {
+  session?: Session | null;
+  connected?: boolean | undefined;
+};
 
+function Auth({ session }: AuthProps) {
   return (
     <>
       <div className="absolute top-0">
@@ -18,20 +20,23 @@ async function Auth() {
                   alt="User Image"
                   width={30}
                   height={30}
+                  className="rounded-full"
                 />
               )}
-              <span>
-                <small>Signed in as </small>
+              <div className="flex flex-col justify-center items-start">
+                <span>
+                  <span className="text-sm">Signed in as </span>
 
-                <strong>{session.user.name}</strong>
-              </span>
+                  <strong>{session.user.name}</strong>
+                </span>
+                <SignOut />
+              </div>
             </div>
-            <SignOut />
           </div>
         ) : (
-          <>
+          <div className="mx-2 my-2">
             <SignIn />
-          </>
+          </div>
         )}
       </div>
     </>

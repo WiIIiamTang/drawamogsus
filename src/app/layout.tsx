@@ -1,6 +1,6 @@
 import "./globals.css";
 import VAnalytics from "@/components/Analytics";
-import Auth from "@/components/Auth";
+import FleetWrapper from "@/components/FleetWrapper";
 
 export default function RootLayout({
   children,
@@ -16,8 +16,10 @@ export default function RootLayout({
       <head />
       <body>
         {/** @ts-expect-error  https://github.com/vercel/next.js/issues/42292 */}
-        <Auth />
-        <div>{children}</div> <VAnalytics />
+        <FleetWrapper>
+          <div>{children}</div>
+        </FleetWrapper>
+        <VAnalytics />
       </body>
     </html>
   );
