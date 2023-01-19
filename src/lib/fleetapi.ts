@@ -23,22 +23,26 @@ export const connectUsertoService = async (session: Session) => {
     SERVICE_ID &&
     SERVICE_NAME_IDENTIFIER
   ) {
-    fleetResponse = await fetch(
-      `${FLEET_API_BASE_URL}/fleet/service/connectuser`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${FLEET_AUTH_TOKEN}`,
-        },
-        body: JSON.stringify({
-          discordAccountId: session?.user?.id,
-          discordUsername: session?.user?.name,
-          serviceId: SERVICE_ID,
-          serviceNameIdentifier: SERVICE_NAME_IDENTIFIER,
-        }),
-      }
-    );
+    try {
+      fleetResponse = await fetch(
+        `${FLEET_API_BASE_URL}/fleet/service/connectuser`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${FLEET_AUTH_TOKEN}`,
+          },
+          body: JSON.stringify({
+            discordAccountId: session?.user?.id,
+            discordUsername: session?.user?.name,
+            serviceId: SERVICE_ID,
+            serviceNameIdentifier: SERVICE_NAME_IDENTIFIER,
+          }),
+        }
+      );
+    } catch (error) {
+      console.error(error); // server-side log
+    }
   } else {
     fleetResponse = undefined;
   }
@@ -55,13 +59,17 @@ export const getApiVersion = async (session: Session) => {
     SERVICE_ID &&
     SERVICE_NAME_IDENTIFIER
   ) {
-    fleetResponse = await fetch(`${FLEET_API_BASE_URL}/fleet/version`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${FLEET_AUTH_TOKEN}`,
-      },
-    });
+    try {
+      fleetResponse = await fetch(`${FLEET_API_BASE_URL}/fleet/version`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${FLEET_AUTH_TOKEN}`,
+        },
+      });
+    } catch (error) {
+      console.error(error); // server-side log
+    }
   } else {
     fleetResponse = undefined;
   }
