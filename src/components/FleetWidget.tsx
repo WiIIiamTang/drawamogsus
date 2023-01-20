@@ -54,11 +54,11 @@ function FleetWidget({ session, connected, version }: FleetWidgetProps) {
             ))}
           <div className="mt-auto text-xs text-slate-600 flex flex-row items-center gap-2 w-full">
             <p>{version && `${version}`}</p>
-            <p>
+            {/* <p>
               <Link href="https://fleet.williamtang.me">
                 fleet.williamtang.me
               </Link>
-            </p>
+            </p> */}
           </div>
         </div>
       </div>
