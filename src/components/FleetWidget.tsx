@@ -82,7 +82,7 @@ function FleetWidget({
                         </div>
                       ))
                     ) : (
-                      <p>No notifications.</p>
+                      <p className="mt-2">No notifications.</p>
                     )}
                   </div>
                 </div>
