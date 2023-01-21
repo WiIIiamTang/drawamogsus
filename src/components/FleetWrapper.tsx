@@ -2,7 +2,11 @@ import Auth from "@/components/Auth";
 import FleetWidget from "@/components/FleetWidget";
 import { unstable_getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import { connectUsertoService, getApiVersion } from "@/lib/fleetapi";
+import {
+  connectUsertoService,
+  getApiVersion,
+  getUserNotifications,
+} from "@/lib/fleetapi";
 
 type fleetResponse =
   | ({
@@ -24,6 +28,7 @@ const FleetWrapper = async ({ children }: { children: React.ReactNode }) => {
   if (session) {
     fleetResponses.connected = await connectUsertoService(session);
     fleetResponses.version = await getApiVersion(session);
+    fleetResponses.notifications = await getUserNotifications(session);
   }
 
   const fleetResponseConnectedJson =
@@ -31,6 +36,9 @@ const FleetWrapper = async ({ children }: { children: React.ReactNode }) => {
 
   const fleetResponseVersionJson =
     (await fleetResponses.version?.json()) || undefined;
+
+  const fleetResponseNotificationsJson =
+    (await fleetResponses.notifications?.json()) || undefined;
 
   return (
     <div>
@@ -40,6 +48,7 @@ const FleetWrapper = async ({ children }: { children: React.ReactNode }) => {
         session={session}
         connected={fleetResponseConnectedJson?.success}
         version={fleetResponseVersionJson?.version}
+        notifications={fleetResponseNotificationsJson?.notifications}
       />
     </div>
   );

@@ -1,10 +1,20 @@
 import type { Session } from "next-auth/core/types";
 
+type Notification = {
+  notificationId: string;
+  discordAccountId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  notificationMessage: string;
+  expiresAt: Date;
+};
+
 type fleetResponse =
   | ({
       success?: boolean;
       message?: string;
       code?: string;
+      notifications?: Array<Notification>;
     } & Response)
   | undefined;
 
@@ -67,6 +77,37 @@ export const getApiVersion = async (session: Session) => {
           Authorization: `Bearer ${FLEET_AUTH_TOKEN}`,
         },
       });
+    } catch (error) {
+      console.error(error); // server-side log
+    }
+  } else {
+    fleetResponse = undefined;
+  }
+
+  return fleetResponse;
+};
+
+export const getUserNotifications = async (session: Session) => {
+  let fleetResponse: fleetResponse;
+  if (
+    session &&
+    session.user &&
+    FLEET_API_BASE_URL &&
+    FLEET_AUTH_TOKEN &&
+    SERVICE_ID &&
+    SERVICE_NAME_IDENTIFIER
+  ) {
+    try {
+      fleetResponse = await fetch(
+        `${FLEET_API_BASE_URL}/fleet/notifications?discordAccountId=${session.user.id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${FLEET_AUTH_TOKEN}`,
+          },
+        }
+      );
     } catch (error) {
       console.error(error); // server-side log
     }
