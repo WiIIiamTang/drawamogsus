@@ -3,10 +3,12 @@ import type { Session } from "next-auth/core/types";
 type Notification = {
   notificationId: string;
   discordAccountId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   notificationMessage: string;
-  expiresAt: Date;
+  expiresAt: string;
+  serviceId: string;
+  serviceNameIdentifier: string;
 };
 
 type fleetResponse =

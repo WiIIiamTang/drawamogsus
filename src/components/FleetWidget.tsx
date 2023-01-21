@@ -13,6 +13,8 @@ type Notification = {
   updatedAt: string;
   notificationMessage: string;
   expiresAt: string;
+  serviceId: string;
+  serviceNameIdentifier: string;
 };
 
 type FleetWidgetProps = {
@@ -75,7 +77,7 @@ function FleetWidget({
                           </div>
                           <div className="flex flex-row w-full justify-between">
                             <div>{n.createdAt.split("T")[0]}</div>
-                            <div>From</div>
+                            <div>{n.serviceNameIdentifier}</div>
                           </div>
                         </div>
                       ))
