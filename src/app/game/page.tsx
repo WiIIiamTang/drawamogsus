@@ -208,6 +208,7 @@ const Game: FunctionComponent<GameProps> = () => {
               style={{
                 width: creatingRoom ? "100%" : "0",
                 opacity: creatingRoom ? 1 : 0,
+                visibility: creatingRoom ? "visible" : "hidden",
               }}
             >
               <form className="flex flex-col justify-center items-center transition-all duration-500 ease-in-out">
