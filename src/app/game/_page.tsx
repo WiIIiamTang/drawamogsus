@@ -11,18 +11,20 @@ const socket = io(
   process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3001"
 );
 
-interface GameProps {}
+interface GameProps {
+  username?: string;
+}
 
 type UserScore = {
   name: string;
   score: number;
 };
 
-const Game: FunctionComponent<GameProps> = () => {
+const Game: FunctionComponent<GameProps> = ({ username }) => {
   const [joiningRoom, setJoiningRoom] = useState(false);
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [roomCode, setRoomCode] = useState("");
-  const [nickname, setNickname] = useState("");
+  const [nickname, setNickname] = useState(username ? username : "");
   const [errorMessage, setErrorMessage] = useState("");
   const [canEnterRoom, setCanEnterRoom] = useState(false);
   const [userScoresWhenJoining, setUserScoresWhenJoining] = useState<
