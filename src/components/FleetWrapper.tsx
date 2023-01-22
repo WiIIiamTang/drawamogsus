@@ -22,7 +22,6 @@ type fleetResponses = {
 
 const FleetWrapper = async ({ children }: { children: React.ReactNode }) => {
   const session = await unstable_getServerSession(authOptions);
-
   // Connect user to fleet
   let fleetResponses: fleetResponses = {};
   if (session) {
