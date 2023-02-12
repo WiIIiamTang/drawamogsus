@@ -417,7 +417,7 @@ const Room = (props: Props) => {
             className="border border-slate-600 rounded-md bg-white shadow-lg"
           />
 
-          <div id="users-and-chat" className="flex flex-col h-full">
+          <div id="users-and-chat" className="flex flex-col max-h-92">
             <div className="h-1/5 w-full">
               <Users
                 socket={socket}
@@ -443,7 +443,7 @@ const Room = (props: Props) => {
                 currentNickname={props.nickname}
               />
             </div>
-            <div className="h-1/5 max-w-xs flex flex-col justify-end">
+            <div className="h-1/5 max-w-xs flex flex-col justify-end mt-8 2xl:mt-0">
               <ul className="steps text-sm font-light">
                 {Array(rounds)
                   .fill(0)

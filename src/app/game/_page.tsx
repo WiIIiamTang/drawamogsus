@@ -147,7 +147,7 @@ const Game: FunctionComponent<GameProps> = ({ username }) => {
   };
 
   return (
-    <div className="bg-primary h-screen w-screen flex justify-center">
+    <div className="bg-primary min-h-screen h-full w-screen flex justify-center">
       {roomCode ? (
         <Room
           room={roomCode}
